@@ -35,12 +35,7 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
 # Получение и установка соответствующего ChromeDriver
 RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
     CHROMEDRIVER_URL=$(curl -s https://raw.githubusercontent.com/GoogleChromeLabs/chrome-for-testing/main/known-good-versions-with-downloads.json | \
-      jq -r --arg ver "$CHROME_VERSION" '
-        .versions[] 
-        | select(.version == $ver) 
-        | .downloads.chromedriver[] 
-        | select(.platform == "linux64") 
-        | .url') && \
+      jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version == $ver) | .downloads.chromedriver[] | select(.platform == "linux64") | .url') && \
     wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
     rm /tmp/chromedriver.zip && \
