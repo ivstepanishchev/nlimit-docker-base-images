@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
-# Обновления и зависимости
+# Обновления и системные зависимости (для запуска Chrome в headless-режиме)
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -30,15 +30,13 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
  && apt-get update && apt-get install -y google-chrome-stable \
  && rm -rf /var/lib/apt/lists/*
 
-# Установка ChromeDriver (подходящего к Chrome)
-ARG CHROME_DRIVER_VERSION=latest
-
-RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
-
-RUN if [ "$CHROME_DRIVER_VERSION" = "latest" ]; then \
-      CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE); \
-    fi && \
-    wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip && \
+# Установка ChromeDriver, соответствующего версии установленного Chrome
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
+    CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+        | grep -A 20 "\"$CHROME_VERSION\"" \
+        | grep "linux64.zip" \
+        | grep -o 'https://[^"]*') && \
+    wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
     rm /tmp/chromedriver.zip && \
     chmod +x /usr/local/bin/chromedriver
