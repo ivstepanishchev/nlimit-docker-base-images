@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 # Обновления и зависимости
 RUN apt-get update && apt-get install -y \
     wget \
+    curl \
     unzip \
     gnupg \
     libglib2.0-0 \
