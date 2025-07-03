@@ -21,10 +21,11 @@ RUN apt-get update && apt-get install -y \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
     libdrm2 \
+    libgbm1 \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Версия Chrome и ChromeDriver (должны совпадать)
+# Версия Chrome и ChromeDriver
 ENV CHROME_VERSION=126.0.6478.57
 
 # Установка Chrome
