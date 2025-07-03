@@ -30,12 +30,16 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
  && apt-get update && apt-get install -y google-chrome-stable \
  && rm -rf /var/lib/apt/lists/*
 
-# Установка ChromeDriver, соответствующего версии установленного Chrome
+RUN apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
+
+# Получаем версию Chrome
 RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
     CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-        | grep -A 20 "\"$CHROME_VERSION\"" \
-        | grep "linux64.zip" \
-        | grep -o 'https://[^"]*') && \
+        | jq -r --arg ver "$CHROME_VERSION" '
+          .channels | to_entries[] | select(.value.version == $ver) 
+          | .value.downloads.chrome[] 
+          | select(.platform == "linux64") 
+          | .url') && \
     wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
     rm /tmp/chromedriver.zip && \
