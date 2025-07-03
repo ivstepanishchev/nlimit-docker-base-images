@@ -34,12 +34,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /v
 
 # Получаем версию Chrome
 RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
-    CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-        | jq -r --arg ver "$CHROME_VERSION" '
-          .channels | to_entries[] | select(.value.version == $ver) 
-          | .value.downloads.chrome[] 
-          | select(.platform == "linux64") 
-          | .url') && \
+    CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json | \
+    jq -r --arg ver "$CHROME_VERSION" '.channels | to_entries[] | select(.value.version == $ver) | .value.downloads.chromedriver[] | select(.platform == "linux64") | .url') && \
     wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
     rm /tmp/chromedriver.zip && \
