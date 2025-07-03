@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
-# Установка зависимостей
+# Системные зависимости
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
@@ -26,26 +26,22 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Установка Google Chrome
+# Установка Chrome — стабильная, точно известной версии
+ENV CHROME_VERSION=114.0.5735.90
+
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/google.gpg && \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable --no-install-recommends && \
+    apt-get update && apt-get install -y google-chrome-stable=$CHROME_VERSION-1 --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Установка подходящего ChromeDriver
-RUN bash -c '\
-    CHROME_VERSION=$(google-chrome --version | grep -oP "\d+\.\d+\.\d+") && \
-    echo "Detected Chrome version: $CHROME_VERSION" && \
-    CHROMEDRIVER_URL=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-        | jq -r --arg ver "$CHROME_VERSION" \
-        '"'"'.channels | to_entries[] | select(.value.version == $ver) | .value.downloads.chromedriver[] | select(.platform == "linux64") | .url'"'"') && \
-    echo "Driver URL: $CHROMEDRIVER_URL" && \
+# Находим URL соответствующего ChromeDriver
+RUN CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+      | jq -r --arg ver "$CHROME_VERSION" '.channels | to_entries[] | select(.value.version == $ver) | .value.downloads.chromedriver[] | select(.platform == "linux64") | .url') && \
     wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
     rm /tmp/chromedriver.zip && \
-    chmod +x /usr/local/bin/chromedriver \
-'
+    chmod +x /usr/local/bin/chromedriver
 
-# Установка переменных окружения
+# Переменные окружения
 ENV CHROME_BIN=/usr/bin/google-chrome \
     CHROMEDRIVER=/usr/local/bin/chromedriver
