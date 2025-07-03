@@ -31,6 +31,9 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
 
 # Установка ChromeDriver (подходящего к Chrome)
 ARG CHROME_DRIVER_VERSION=latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
+
 RUN if [ "$CHROME_DRIVER_VERSION" = "latest" ]; then \
       CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE); \
     fi && \
