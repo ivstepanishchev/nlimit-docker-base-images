@@ -32,11 +32,8 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
 
 RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
     echo "Detected Chrome version: $CHROME_VERSION" && \
-    for i in 1 2 3; do \
-      CHROMEDRIVER_URL=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-        | jq -r --arg ver "$CHROME_VERSION" '.channels | to_entries[] | select(.value.version == $ver)| .value.downloads.chromedriver[]| select(.platform == "linux64")| .url'); \
-      [ -n "$CHROMEDRIVER_URL" ] && break || echo "Retrying to fetch driver (attempt $i)..." && sleep 2; \
-    done && \
+    CHROMEDRIVER_URL=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+      | jq -r --arg ver "$CHROME_VERSION" '.channels | to_entries[] | select(.value.version == $ver)| .value.downloads.chromedriver[]| select(.platform == "linux64")| .url') && \
     echo "Driver URL: $CHROMEDRIVER_URL" && \
     wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin && \
