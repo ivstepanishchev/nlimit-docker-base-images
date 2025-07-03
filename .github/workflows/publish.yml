@@ -14,5 +14,5 @@ jobs:
     with:
       image_name: selenium-base
       context: ./selenium-base
-      dickerfile: ./selenium-base/Dockerfile
+      dockerfile: ./selenium-base/Dockerfile
       tag: latest
