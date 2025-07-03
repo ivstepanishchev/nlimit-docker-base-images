@@ -26,24 +26,22 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Ставим Chrome через .deb архив нужной версии
+# Версия Chrome и ChromeDriver (всегда совместимы)
 ENV CHROME_VERSION=114.0.5735.90
 
-RUN wget -O /tmp/chrome.deb https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_VERSION/linux64/chrome-linux64.zip && \
-    mkdir -p /opt/chrome && \
-    apt-get update && apt-get install -y unzip libxss1 libappindicator3-1 libatk-bridge2.0-0 libgbm1 libu2f-udev && \
-    unzip /tmp/chrome.deb -d /opt/chrome && \
-    ln -s /opt/chrome/chrome-linux64/chrome /usr/bin/google-chrome && \
-    rm /tmp/chrome.deb
+# Установка Chrome
+RUN wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_VERSION/linux64/chrome-linux64.zip && \
+    unzip chrome-linux64.zip && \
+    mv chrome-linux64 /opt/chrome && \
+    rm chrome-linux64.zip
 
-# Скачиваем соответствующий ChromeDriver
-RUN CHROMEDRIVER_URL=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-    | jq -r --arg ver "$CHROME_VERSION" '.channels | to_entries[] | select(.value.version == $ver) | .value.downloads.chromedriver[] | select(.platform == "linux64") | .url') && \
-    wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" && \
-    unzip /tmp/chromedriver.zip -d /usr/local/bin && \
-    rm /tmp/chromedriver.zip && \
-    chmod +x /usr/local/bin/chromedriver
+# Установка ChromeDriver
+RUN wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_VERSION/linux64/chromedriver-linux64.zip && \
+    unzip chromedriver-linux64.zip && \
+    mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf chromedriver-linux64.zip chromedriver-linux64
 
 # Переменные окружения
-ENV CHROME_BIN=/usr/bin/google-chrome \
+ENV CHROME_BIN=/opt/chrome/chrome \
     CHROMEDRIVER=/usr/local/bin/chromedriver
