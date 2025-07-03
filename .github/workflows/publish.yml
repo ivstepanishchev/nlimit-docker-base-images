@@ -1,0 +1,18 @@
+name: Publish selenium-base
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "selenium-base/**"
+
+  workflow_dispatch:
+
+jobs:
+  publish-selenium-base:
+    uses: ivstepanishchev/nlimit-workflows/.github/workflows/build-push.yml@main
+    with:
+      image_name: selenium-base
+      context: ./selenium-base
+      dickerfile: ./selenium-base/Dockerfile
+      tag: latest
